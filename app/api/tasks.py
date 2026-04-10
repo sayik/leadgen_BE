@@ -28,6 +28,16 @@ async def create_task(payload: TaskCreate, db: AsyncSession = Depends(get_db), u
     await ensure_user(db, user.organization_id, payload.owner_id)
     await ensure_lead(db, user.organization_id, payload.lead_id)
     await ensure_case(db, user.organization_id, payload.case_id)
+    if payload.lead_id:
+        from app.modules.models import Lead
+        lead = await db.scalar(select(Lead).where(Lead.id == payload.lead_id, Lead.organization_id == user.organization_id))
+        if lead.customer_id != payload.customer_id:
+            raise HTTPException(422, "Lead must belong to the selected customer")
+    if payload.case_id:
+        from app.modules.models import ServiceCase
+        case = await db.scalar(select(ServiceCase).where(ServiceCase.id == payload.case_id, ServiceCase.organization_id == user.organization_id))
+        if case.customer_id != payload.customer_id:
+            raise HTTPException(422, "Case must belong to the selected customer")
     if payload.lead_id and payload.case_id:
         raise HTTPException(422, "A task can be associated with a lead or case, not both")
     obj = Task(organization_id=user.organization_id, **payload.model_dump())
