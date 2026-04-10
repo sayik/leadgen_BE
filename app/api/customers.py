@@ -7,7 +7,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.modules.models import Customer, Contact, ContactType, User
 from app.schemas import CustomerCreate, CustomerUpdate, CustomerOut, ContactCreate, ContactOut
-from app.api.common import ensure_user
+from app.api.common import ensure_user, ensure_team
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
@@ -40,8 +40,12 @@ async def list_customers(
 @router.post("", response_model=CustomerOut, status_code=201)
 async def create_customer(payload: CustomerCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
     await ensure_user(db, user.organization_id, payload.relationship_owner_id)
+    await ensure_team(db, user.organization_id, payload.relationship_team_id)
     obj = Customer(organization_id=user.organization_id, **payload.model_dump())
     db.add(obj)
+    await db.flush()
+    from app.core.audit import record_audit
+    record_audit(db, user, "customer.created", "customer", obj.id)
     await db.commit()
     await db.refresh(obj)
     return obj
@@ -62,6 +66,7 @@ async def update_customer(customer_id: UUID, payload: CustomerUpdate, db: AsyncS
         raise HTTPException(404, "Customer not found")
     data = payload.model_dump(exclude_unset=True)
     await ensure_user(db, user.organization_id, data.get("relationship_owner_id"))
+    await ensure_team(db, user.organization_id, data.get("relationship_team_id"))
     for key, value in data.items():
         setattr(obj, key, value)
     await db.commit()

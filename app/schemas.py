@@ -61,6 +61,7 @@ class CustomerCreate(BaseModel):
     source: str | None = None
     status: CustomerStatus = CustomerStatus.prospect
     relationship_owner_id: UUID | None = None
+    relationship_team_id: UUID | None = None
     notes: str | None = None
     custom_fields: dict = Field(default_factory=dict)
 
@@ -75,6 +76,7 @@ class CustomerUpdate(BaseModel):
     source: str | None = None
     status: CustomerStatus | None = None
     relationship_owner_id: UUID | None = None
+    relationship_team_id: UUID | None = None
     notes: str | None = None
     custom_fields: dict | None = None
 
@@ -90,6 +92,7 @@ class CustomerOut(ORMModel):
     source: str | None
     status: CustomerStatus
     relationship_owner_id: UUID | None
+    relationship_team_id: UUID | None
     notes: str | None
     custom_fields: dict
     created_at: datetime

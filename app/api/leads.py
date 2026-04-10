@@ -28,6 +28,9 @@ async def create_lead(payload: LeadCreate, db: AsyncSession = Depends(get_db), u
     await ensure_team(db, user.organization_id, payload.team_id)
     obj = Lead(organization_id=user.organization_id, **payload.model_dump())
     db.add(obj)
+    await db.flush()
+    from app.core.audit import record_audit
+    record_audit(db, user, "lead.created", "lead", obj.id)
     await db.commit()
     await db.refresh(obj)
     return obj

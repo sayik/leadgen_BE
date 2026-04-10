@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_roles
 from app.modules.models import Team, TeamMember, User
@@ -25,7 +26,7 @@ async def create_team(payload: TeamCreate, db: AsyncSession = Depends(get_db), a
 
 
 @router.post("/{team_id}/members", status_code=204)
-async def add_member(team_id: str, payload: TeamMemberCreate, db: AsyncSession = Depends(get_db), admin: User = Depends(require_roles("admin", "manager"))):
+async def add_member(team_id: UUID, payload: TeamMemberCreate, db: AsyncSession = Depends(get_db), admin: User = Depends(require_roles("admin", "manager"))):
     team = await db.scalar(select(Team).where(Team.id == team_id, Team.organization_id == admin.organization_id))
     if not team:
         raise HTTPException(404, "Team not found")

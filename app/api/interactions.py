@@ -21,6 +21,9 @@ async def create_interaction(payload: InteractionCreate, db: AsyncSession = Depe
     data = payload.model_dump(exclude={"occurred_at"})
     obj = Interaction(organization_id=user.organization_id, created_by_id=user.id, occurred_at=payload.occurred_at, **data)
     db.add(obj)
+    await db.flush()
+    from app.core.audit import record_audit
+    record_audit(db, user, "interaction.created", "interaction", obj.id, {"channel": payload.channel.value})
     await db.commit()
     await db.refresh(obj)
     return obj

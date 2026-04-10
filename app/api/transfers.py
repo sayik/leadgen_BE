@@ -21,8 +21,9 @@ async def transfer_entity(payload: TransferCreate, db: AsyncSession = Depends(ge
         if not obj:
             raise HTTPException(404, "Customer not found")
         customer_id = obj.id
-        from_user_id, from_team_id = obj.relationship_owner_id, None
+        from_user_id, from_team_id = obj.relationship_owner_id, obj.relationship_team_id
         obj.relationship_owner_id = payload.to_user_id
+        obj.relationship_team_id = payload.to_team_id
     elif payload.entity_type == "lead":
         obj = await db.scalar(select(Lead).where(Lead.id == payload.entity_id, Lead.organization_id == user.organization_id))
         if not obj:
@@ -46,6 +47,12 @@ async def transfer_entity(payload: TransferCreate, db: AsyncSession = Depends(ge
         requested_by_id=user.id, reason=payload.reason,
     )
     db.add(transfer)
+    await db.flush()
+    from app.core.audit import record_audit
+    record_audit(db, user, f"{payload.entity_type}.transferred", payload.entity_type, payload.entity_id,
+                 {"to_team_id": str(payload.to_team_id) if payload.to_team_id else None,
+                  "to_user_id": str(payload.to_user_id) if payload.to_user_id else None,
+                  "reason": payload.reason})
     await db.commit()
     await db.refresh(transfer)
     return transfer

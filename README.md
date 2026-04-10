@@ -11,7 +11,7 @@ Customer-centric CRM backend for a 15–50 employee business. Phase 1 focuses on
 - Sales leads and service cases
 - Tasks/reminders
 - Team/employee transfers with history
-- Audit events for key changes
+- Audit events for key creation and transfer actions
 - PostgreSQL, SQLAlchemy async, Alembic, Docker Compose
 - OpenAPI docs at `/docs`
 
@@ -89,7 +89,7 @@ All business records are organization-scoped from the authenticated user. Do not
 ## Important implementation notes
 
 - Phone numbers are normalized to E.164 when possible. The API currently expects a country region (defaults to `IN`) for national-format numbers.
-- Customer profile fields are progressively enriched; fields are optional.
+- Customer profile fields are progressively enriched; fields are optional. Relationship ownership supports both a team and an individual employee.
 - Customer relationship owner, lead owner and case owner are separate concepts.
 - Transfers preserve a transfer history and do not duplicate customer records.
 - Tasks are stored durably in PostgreSQL. A future worker can poll due tasks and send notifications.

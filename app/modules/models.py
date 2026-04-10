@@ -89,6 +89,7 @@ class Customer(IDMixin, TimestampMixin, Base):
     source: Mapped[str | None] = mapped_column(String(100))
     status: Mapped[CustomerStatus] = mapped_column(Enum(CustomerStatus, name="customer_status"), default=CustomerStatus.prospect)
     relationship_owner_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), index=True)
+    relationship_team_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("teams.id"), index=True)
     notes: Mapped[str | None] = mapped_column(Text)
     custom_fields: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
 
