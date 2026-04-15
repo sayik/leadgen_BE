@@ -99,3 +99,8 @@ All business records are organization-scoped from the authenticated user. Do not
 ## Version control
 
 This project is initialized as a Git repository. See `git log` for the initial implementation commit.
+
+
+## Project continuity and handoff
+
+`PROJECT_STATE.md` is the canonical product/architecture/status handoff. Read it before starting work in a later session and update it when decisions, scope, implementation status, API contracts, or next steps change. Git commits remain the authoritative implementation history; never use this document as a substitute for inspecting the actual code and migrations.
