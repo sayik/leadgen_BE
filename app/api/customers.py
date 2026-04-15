@@ -37,6 +37,30 @@ async def list_customers(
     return (await db.scalars(stmt.order_by(Customer.updated_at.desc()).offset(offset).limit(limit))).all()
 
 
+@router.get("/lookup/by-phone", response_model=CustomerOut)
+async def lookup_customer_by_phone(
+    phone: str, region: str = "IN", db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
+    try:
+        normalized = normalize_contact(ContactType.phone, phone, region)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    contact = await db.scalar(select(Contact).where(
+        Contact.organization_id == user.organization_id,
+        Contact.contact_type == ContactType.phone,
+        Contact.value_normalized == normalized,
+    ))
+    if not contact:
+        raise HTTPException(404, "No customer is associated with this phone number")
+    customer = await db.scalar(select(Customer).where(
+        Customer.id == contact.customer_id,
+        Customer.organization_id == user.organization_id,
+    ))
+    if not customer:
+        raise HTTPException(404, "Customer not found")
+    return customer
+
+
 @router.post("", response_model=CustomerOut, status_code=201)
 async def create_customer(payload: CustomerCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
     await ensure_user(db, user.organization_id, payload.relationship_owner_id)

@@ -17,7 +17,7 @@ async def list_users(db: AsyncSession = Depends(get_db), user: User = Depends(ge
 
 @router.post("", response_model=UserOut, status_code=201)
 async def create_user(payload: UserCreate, db: AsyncSession = Depends(get_db), admin: User = Depends(require_roles("admin"))):
-    existing = await db.scalar(select(User).where(User.organization_id == admin.organization_id, User.email == payload.email))
+    existing = await db.scalar(select(User).where(User.email == payload.email))
     if existing:
         raise HTTPException(409, "Email already exists in organization")
     obj = User(

@@ -41,7 +41,7 @@ class UserRole(str, enum.Enum):
 
 class User(IDMixin, TimestampMixin, Base):
     __tablename__ = "users"
-    __table_args__ = (UniqueConstraint("organization_id", "email", name="uq_user_org_email"),)
+    __table_args__ = (UniqueConstraint("email", name="uq_user_email"),)
     organization_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organizations.id"), index=True)
     full_name: Mapped[str] = mapped_column(String(200), nullable=False)
     email: Mapped[str] = mapped_column(String(320), nullable=False)
