@@ -13,4 +13,3 @@ build/
 .idea/
 .vscode/
 .DS_Store
-.fix_git_history.py
